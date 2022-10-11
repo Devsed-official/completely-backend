@@ -1,5 +1,8 @@
 ## Dependencies
 node_modules
 
+##static media files
+content
+
 ## Lock file(s)
 package-lock.json
