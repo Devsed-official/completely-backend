@@ -11,19 +11,18 @@ export default {
       const validation = makeValidation(types => ({
         payload: req.body,
         checks: {
-          userIds: { 
-            type: types.array, 
-            options: { unique: true, empty: false, stringOnly: true } 
+          userIds: {
+            type: types.array,
+            options: { unique: true, empty: false, stringOnly: true }
           },
           type: { type: types.enum, options: { enum: CHAT_ROOM_TYPES } },
         }
       }));
       if (!validation.success) return res.status(400).json({ ...validation });
 
-      const { userIds, type } = req.body;
-      const { userId: chatInitiator } = req;
-      const allUserIds = [...userIds, chatInitiator];
-      const chatRoom = await ChatRoomModel.initiateChat(allUserIds, type, chatInitiator);
+      const { userIds, type, chatInitiator } = req.body;
+      // const allUserIds = [...userIds, chatInitiator];
+      const chatRoom = await ChatRoomModel.initiateChat(userIds, type, chatInitiator);
       return res.status(200).json({ success: true, chatRoom });
     } catch (error) {
       return res.status(500).json({ success: false, error: error })
@@ -43,7 +42,7 @@ export default {
       const messagePayload = {
         messageText: req.body.messageText,
       };
-      const currentLoggedUser = req.userId;
+      const currentLoggedUser = req.body.userId;
       const post = await ChatMessageModel.createPostInChatRoom(roomId, messagePayload, currentLoggedUser);
       global.io.sockets.in(roomId).emit('new message', { message: post });
       return res.status(200).json({ success: true, post });
@@ -53,7 +52,7 @@ export default {
   },
   getRecentConversation: async (req, res) => {
     try {
-      const currentLoggedUser = req.userId;
+      const currentLoggedUser = req.body.userId;
       const options = {
         page: parseInt(req.query.page) || 0,
         limit: parseInt(req.query.limit) || 10,

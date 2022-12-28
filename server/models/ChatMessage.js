@@ -83,15 +83,15 @@ chatMessageSchema.statics.createPostInChatRoom = async function (chatRoomId, mes
       { $unwind: '$chatRoomInfo.userIds' },
       // do a join on another table called users, and 
       // get me a user whose _id = userIds
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'chatRoomInfo.userIds',
-          foreignField: '_id',
-          as: 'chatRoomInfo.userProfile',
-        }
-      },
-      { $unwind: '$chatRoomInfo.userProfile' },
+      // {
+      //   $lookup: {
+      //     from: 'users',
+      //     localField: 'chatRoomInfo.userIds',
+      //     foreignField: '_id',
+      //     as: 'chatRoomInfo.userProfile',
+      //   }
+      // },
+      // { $unwind: '$chatRoomInfo.userProfile' },
       // group data
       {
         $group: {
@@ -102,7 +102,7 @@ chatMessageSchema.statics.createPostInChatRoom = async function (chatRoomId, mes
           type: { $last: '$type' },
           postedByUser: { $last: '$postedByUser' },
           readByRecipients: { $last: '$readByRecipients' },
-          chatRoomInfo: { $addToSet: '$chatRoomInfo.userProfile' },
+          // chatRoomInfo: { $addToSet: '$chatRoomInfo.userProfile' },
           createdAt: { $last: '$createdAt' },
           updatedAt: { $last: '$updatedAt' },
         }
@@ -186,10 +186,11 @@ chatMessageSchema.statics.getRecentConversation = async function (chatRoomIds, o
           type: { $last: '$type' },
           postedByUser: { $last: '$postedByUser' },
           createdAt: { $last: '$createdAt' },
+          // updatedAt: { $last: '$updatedAt' },
           readByRecipients: { $last: '$readByRecipients' },
         }
       },
-      { $sort: { createdAt: -1 } },
+      { $sort: { updatedAt: -1 } },
       // do a join on another table called users, and 
       // get me a user whose _id = postedByUser
       {
@@ -219,9 +220,10 @@ chatMessageSchema.statics.getRecentConversation = async function (chatRoomIds, o
           from: 'users',
           localField: 'roomInfo.userIds',
           foreignField: '_id',
-          as: 'roomInfo.userProfile',
+          as: 'userInfo.userProfile',
         }
       },
+      // { $unwind: "$userInfo" },
       { $unwind: "$readByRecipients" },
       // do a join on another table called users 
       {
@@ -232,7 +234,7 @@ chatMessageSchema.statics.getRecentConversation = async function (chatRoomIds, o
           as: 'readByRecipients.readByUser',
         }
       },
-
+      { $unwind: "$userInfo.userProfile" },
       {
         $group: {
           _id: '$roomInfo._id',
@@ -242,8 +244,9 @@ chatMessageSchema.statics.getRecentConversation = async function (chatRoomIds, o
           type: { $last: '$type' },
           postedByUser: { $last: '$postedByUser' },
           readByRecipients: { $addToSet: '$readByRecipients' },
-          roomInfo: { $addToSet: '$roomInfo.userProfile' },
+          userInfo: { $addToSet: '$userInfo.userProfile' },
           createdAt: { $last: '$createdAt' },
+          // updatedAt: '$updatedAt',
         },
       },
       // apply pagination

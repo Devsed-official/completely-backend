@@ -15,17 +15,23 @@ export const USER_GENDER_OPTIONS = {
 const userSchema = new mongoose.Schema(
   {
     _id: String,
+    stripeId: String,
     firstName: String,
     lastName: String,
+    bio: String,
     email: String,
-    dob: Date,
+    dob: String,
     phoneNumber: String,
     role: String,
     gender: String,
     preferredLanguage: String,
     displayPictureUrl: String,
-    currentAddress: AddressSchema,
+    orders: [String],
+    currentAddress: String,
     savedAddresses: [AddressSchema],
+    acceptedTermsAndConditions: Boolean,
+    joinedCommunity: Boolean,
+    acceptedPrivacyPolicy: Boolean
   },
   {
     timestamps: true,
@@ -53,20 +59,27 @@ userSchema.statics.findAndUpdateUser = async function (userId, userObj) {
       upsert: true,
       new: true,
       setDefaultsOnInsert: true,
-    });
+    }).lean();
     return user;
   } catch (error) {
     throw error;
   }
 };
 
-userSchema.statics.findAndUpdateUserDisplayPicture = async function (userId, displayPictureUrl) {
+userSchema.statics.findAndUpdateUserDisplayPicture = async function (
+  userId,
+  displayPictureUrl
+) {
   try {
-    const user = await this.findByIdAndUpdate(userId, {displayPictureUrl}, {
-      upsert: true,
-      new: true,
-      setDefaultsOnInsert: true,
-    });
+    const user = await this.findByIdAndUpdate(
+      userId,
+      { displayPictureUrl },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
     return user;
   } catch (error) {
     throw error;
@@ -99,30 +112,68 @@ userSchema.statics.getUsers = async function () {
   }
 };
 
+userSchema.statics.updateUserLocation = async function (userId, body) {
+  try {
+    let userExists = await this.find({
+      "savedAddresses.lat": body.lat,
+      "savedAddresses.long": body.long,
+      "savedAddresses.placeId": body.placeId,
+    });
+    if (userExists.length) {
+      let currentAdd = userExists[0].savedAddresses.filter(
+        (a) => a.lat === body.lat && a.long === body.long
+      );
+      const users = await this.findByIdAndUpdate(
+        userId,
+        { currentAddress: currentAdd[0]._id },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+        }
+      );
+      return users;
+    }
+    const addressId = new mongoose.Types.ObjectId();
+    body._id = addressId;
+    const users = await this.findByIdAndUpdate(
+      userId,
+      { $push: { savedAddresses: body }, currentAddress: addressId },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
 // /**
 //  * @param {Array} ids, string of user ids
 //  * @return {Array of Objects} users list
 //  */
-// userSchema.statics.getUserByIds = async function (ids) {
-//   try {
-//     const users = await this.find({ _id: { $in: ids } });
-//     return users;
-//   } catch (error) {
-//     throw error;
-//   }
-// };
+userSchema.statics.getUserByIds = async function (ids) {
+  try {
+    const users = await this.find({ _id: { $in: ids } });
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
 
 // /**
 //  * @param {String} id - id of user
 //  * @return {Object} - details of action performed
 //  */
-// userSchema.statics.deleteByUserById = async function (id) {
-//   try {
-//     const result = await this.remove({ _id: id });
-//     return result;
-//   } catch (error) {
-//     throw error;
-//   }
-// };
+userSchema.statics.deleteByUserById = async function (id) {
+  try {
+    const result = await this.remove({ _id: id });
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export default mongoose.model("User", userSchema);

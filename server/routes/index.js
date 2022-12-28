@@ -12,6 +12,7 @@ router
         success: true,
         authorization: req.authToken,
       });
-  });
+  })
+  .get("", (req, res) => res.send("connected"));
 
 export default router;

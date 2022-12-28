@@ -19,10 +19,18 @@ export const TRAINING_STATUS = {
   COMPLETED: "completed",
 };
 
+export const VEHICLE = {
+  "1": "car",
+  "2": "scooter",
+  "3": "bicycle",
+  '4': "publicTransport",
+};
+
 const specializationSchema = new mongoose.Schema({
-  category: String,
-  subCategory: [String],
-  yearsOfExp: Number,
+  productId: String,
+  productTag: String,
+  categories: [String],
+  yearsOfExp: String,
 });
 
 const professionalSchema = new mongoose.Schema(
@@ -33,7 +41,7 @@ const professionalSchema = new mongoose.Schema(
     trainingStatus: String,
     specializations: [specializationSchema],
     languagesSpoken: [String],
-    policeCheck: String,
+    policeCheck: Boolean,
     personalInformation: {
       ahvUrl: String,
       resumeUrl: String,
@@ -46,6 +54,18 @@ const professionalSchema = new mongoose.Schema(
       identityCardFrontUrl: String,
       identityCardBackUrl: String,
       verificationVideoUrl: String,
+      verificationPhotoUrl: String, 
+    },
+    workPermitType: String,
+    ahvNumber: String,
+    workPreferences: {
+      locationRadius: Number,
+      workingDays: [String],
+      workingHours: {
+        start: String,
+        end: String,
+        options: [Number],
+      },
     },
     businessDetailsId: String,
     // photoVerified: Boolean,
@@ -111,7 +131,7 @@ professionalSchema.statics.findAndUpdateProfessionalDocuments = async function (
     const professional = await this.findByIdAndUpdate(
       professionalId,
       {
-        [`personalInformation.${professionalObj.key}`]:professionalObj.value
+        [`personalInformation.${professionalObj.key}`]: professionalObj.value,
       },
       {
         new: true,
@@ -126,7 +146,7 @@ professionalSchema.statics.findAndUpdateProfessionalDocuments = async function (
 /**
  * @return {Array} List of all users
  */
- professionalSchema.statics.getProfessionals = async function () {
+professionalSchema.statics.getProfessionals = async function () {
   try {
     const professionals = await this.find();
     return professionals;

@@ -9,13 +9,17 @@
   },
   "dependencies": {
     "@slynova/flydrive": "^1.0.3",
+    "@stripe/stripe-js": "^1.42.1",
     "@withvoid/make-validation": "1.0.5",
-    "cors": "2.8.5",
+    "cors": "^2.8.5",
     "express": "4.16.1",
     "express-fileupload": "^1.4.0",
+    "greenlock-express": "^4.0.3",
     "jsonwebtoken": "8.5.1",
     "mongoose": "5.9.18",
     "morgan": "1.9.1",
+    "socket.io": "^4.5.3",
+    "stripe": "^10.16.0",
     "uuid": "8.1.0"
   },
   "devDependencies": {

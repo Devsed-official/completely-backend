@@ -48,6 +48,14 @@ chatRoomSchema.statics.getChatRoomByRoomId = async function (roomId) {
   }
 }
 
+chatRoomSchema.statics.getAllChatRooms = async function () {
+  try {
+    const rooms = await this.find();
+    return rooms;
+  } catch (error) {
+    throw error;
+  }
+}
 /**
  * @param {Array} userIds - array of strings of userIds
  * @param {String} chatInitiator - user who initiated the chat
@@ -77,6 +85,7 @@ chatRoomSchema.statics.initiateChat = async function (userIds, type, chatInitiat
       message: 'creating a new chatroom',
       chatRoomId: newRoom._doc._id,
       type: newRoom._doc.type,
+      room: newRoom._doc
     };
   } catch (error) {
     console.log('error on start chat method', error);
